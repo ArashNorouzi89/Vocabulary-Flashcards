@@ -263,7 +263,7 @@ function exportToExcel() {
     a.word.localeCompare(b.word, 'en', { sensitivity: 'base' })
   );
 
-  const headers = ['Example Sentence' ,'Persian Meaning' ,'English Word' ,'Date'];
+  const headers = ['Date', 'English Word', 'Persian Meaning', 'Example Sentence'];
   const rows = sorted.map(w => [w.date, w.word, w.meaning, w.example || '']);
 
   const wsData = [headers, ...rows];

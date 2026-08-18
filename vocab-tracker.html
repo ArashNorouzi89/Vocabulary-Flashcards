@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفترچه لغات روزانه</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: #f7f5f2;
+    margin: 0;
+    padding: 20px;
+    color: #2b2b2b;
+  }
+  .container { max-width: 640px; margin: 0 auto; }
+  h1 {
+    font-size: 22px;
+    margin-bottom: 16px;
+    color: #1f2937;
+  }
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .form-row { display: flex; flex-direction: column; gap: 10px; }
+  input, textarea {
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    width: 100%;
+    direction: ltr;
+    text-align: left;
+  }
+  textarea { direction: rtl; text-align: right; resize: vertical; min-height: 44px; }
+  label { font-size: 13px; color: #6b7280; margin-bottom: -6px; }
+  button {
+    font-family: inherit;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  button:hover { background: #1d4ed8; }
+  button.export-btn {
+    background: #059669;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  button.export-btn:hover { background: #047857; }
+  .word-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .word-item:last-child { border-bottom: none; }
+  .word-main { flex: 1; }
+  .word-en { font-weight: 700; font-size: 16px; direction: ltr; text-align: left; display: block; }
+  .word-meaning { color: #4b5563; font-size: 14px; margin-top: 2px; }
+  .word-example { color: #9ca3af; font-size: 13px; margin-top: 4px; font-style: italic; direction: ltr; text-align: left; }
+  .del-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    margin: 0;
+  }
+  .empty-state { text-align: center; color: #9ca3af; padding: 24px 0; font-size: 14px; }
+  .letter-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2563eb;
+    margin: 18px 0 6px;
+    direction: ltr;
+    text-align: left;
+  }
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .stat-num { font-size: 20px; font-weight: 700; color: #2563eb; }
+  .stat-label { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📘 دفترچه لغات روزانه</h1>
+
+  <div class="stats" id="stats"></div>
+
+  <button class="export-btn" onclick="exportToExcel()">📊 خروجی اکسل از همه لغات</button>
+
+  <div class="card">
+    <div class="form-row">
+      <div>
+        <label>کلمه انگلیسی</label>
+        <input id="wordInput" type="text" placeholder="e.g. accomplish">
+      </div>
+      <div>
+        <label>معنی فارسی</label>
+        <input id="meaningInput" type="text" placeholder="مثلاً: به انجام رساندن">
+      </div>
+      <div>
+        <label>جمله نمونه (اختیاری)</label>
+        <textarea id="exampleInput" placeholder="e.g. I finally accomplished my goal."></textarea>
+      </div>
+      <button onclick="addWord()">افزودن کلمه</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="wordList"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'vocab_words_v1';
+let words = [];
+
+function loadWords() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    words = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    words = [];
+  }
+  render();
+}
+
+function saveWords() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+  } catch (e) {
+    alert('خطا در ذخیره‌سازی. ممکنه حافظه مرورگر پر باشه.');
+  }
+}
+
+function todayKey() {
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function addWord() {
+  const word = document.getElementById('wordInput').value.trim();
+  const meaning = document.getElementById('meaningInput').value.trim();
+  const example = document.getElementById('exampleInput').value.trim();
+
+  if (!word || !meaning) {
+    alert('لطفاً کلمه و معنی رو وارد کن.');
+    return;
+  }
+
+  words.push({
+    id: Date.now().toString(),
+    word, meaning, example,
+    date: todayKey()
+  });
+
+  document.getElementById('wordInput').value = '';
+  document.getElementById('meaningInput').value = '';
+  document.getElementById('exampleInput').value = '';
+
+  saveWords();
+  render();
+}
+
+function deleteWord(id) {
+  words = words.filter(w => w.id !== id);
+  saveWords();
+  render();
+}
+
+function render() {
+  const listEl = document.getElementById('wordList');
+  const statsEl = document.getElementById('stats');
+
+  const today = todayKey();
+  const todayCount = words.filter(w => w.date === today).length;
+  const totalCount = words.length;
+  const uniqueDays = new Set(words.map(w => w.date)).size;
+
+  statsEl.innerHTML = `
+    <div class="stat-box"><div class="stat-num">${todayCount}</div><div class="stat-label">امروز</div></div>
+    <div class="stat-box"><div class="stat-num">${totalCount}</div><div class="stat-label">کل کلمات</div></div>
+    <div class="stat-box"><div class="stat-num">${uniqueDays}</div><div class="stat-label">روزهای فعال</div></div>
+  `;
+
+  if (words.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">هنوز کلمه‌ای ثبت نشده. اولین کلمه امروزت رو اضافه کن!</div>';
+    return;
+  }
+
+  // Sort alphabetically (A-Z) by word, case-insensitive
+  const sorted = [...words].sort((a, b) =>
+    a.word.localeCompare(b.word, 'en', { sensitivity: 'base' })
+  );
+
+  // Group by first letter for section headers
+  const groups = {};
+  sorted.forEach(w => {
+    const letter = w.word.charAt(0).toUpperCase();
+    if (!groups[letter]) groups[letter] = [];
+    groups[letter].push(w);
+  });
+
+  let html = '';
+  Object.keys(groups).sort().forEach(letter => {
+    html += `<div class="letter-header">${letter}</div>`;
+    groups[letter].forEach(w => {
+      html += `
+        <div class="word-item">
+          <div class="word-main">
+            <span class="word-en">${escapeHtml(w.word)}</span>
+            <div class="word-meaning">${escapeHtml(w.meaning)}</div>
+            ${w.example ? `<div class="word-example">"${escapeHtml(w.example)}"</div>` : ''}
+          </div>
+          <button class="del-btn" onclick="deleteWord('${w.id}')">حذف</button>
+        </div>
+      `;
+    });
+  });
+
+  listEl.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function exportToExcel() {
+  if (words.length === 0) {
+    alert('هنوز کلمه‌ای برای خروجی گرفتن وجود نداره.');
+    return;
+  }
+
+  // Sort alphabetically for the export too
+  const sorted = [...words].sort((a, b) =>
+    a.word.localeCompare(b.word, 'en', { sensitivity: 'base' })
+  );
+
+  const headers = ['تاریخ', 'کلمه انگلیسی', 'معنی فارسی', 'جمله نمونه'];
+  const rows = sorted.map(w => [w.date, w.word, w.meaning, w.example || '']);
+
+  const wsData = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 12 }, // date
+    { wch: 20 }, // english word
+    { wch: 24 }, // persian meaning
+    { wch: 40 }  // example
+  ];
+
+  // Right-to-left sheet view for correct Persian reading order/alignment
+  const wb = XLSX.utils.book_new();
+  wb.Workbook = { Views: [{ RTL: true }] };
+
+  XLSX.utils.book_append_sheet(wb, ws, 'لغات');
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `vocab-words-${today}.xlsx`, { bookType: 'xlsx', codepage: 65001 });
+}
+
+loadWords();
+</script>
+</body>
+</html>

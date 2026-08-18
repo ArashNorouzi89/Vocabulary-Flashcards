@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دفترچه لغات روزانه</title>
+<title>Vocabulary Notebook</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   * { box-sizing: border-box; }
@@ -111,23 +111,23 @@
 
   <div class="stats" id="stats"></div>
 
-  <button class="export-btn" onclick="exportToExcel()">📊 خروجی اکسل از همه لغات</button>
+  <button class="export-btn" onclick="exportToExcel()">📊 Excel Output</button>
 
   <div class="card">
     <div class="form-row">
       <div>
-        <label>کلمه انگلیسی</label>
+        <label> English Word </label>
         <input id="wordInput" type="text" placeholder="e.g. accomplish">
       </div>
       <div>
-        <label>معنی فارسی</label>
+        <label> Persian </label>
         <input id="meaningInput" type="text" placeholder="مثلاً: به انجام رساندن">
       </div>
       <div>
-        <label>جمله نمونه (اختیاری)</label>
+        <label> Sample Sentence (Optional)</label>
         <textarea id="exampleInput" placeholder="e.g. I finally accomplished my goal."></textarea>
       </div>
-      <button onclick="addWord()">افزودن کلمه</button>
+      <button onclick="addWord()">Add Word</button>
     </div>
   </div>
 
@@ -154,7 +154,7 @@ function saveWords() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
   } catch (e) {
-    alert('خطا در ذخیره‌سازی. ممکنه حافظه مرورگر پر باشه.');
+    alert('Error while saving. Your browser storage may be full.');
   }
 }
 
@@ -169,7 +169,7 @@ function addWord() {
   const example = document.getElementById('exampleInput').value.trim();
 
   if (!word || !meaning) {
-    alert('لطفاً کلمه و معنی رو وارد کن.');
+    alert('Please enter the word and its meaning.');
     return;
   }
 
@@ -209,7 +209,7 @@ function render() {
   `;
 
   if (words.length === 0) {
-    listEl.innerHTML = '<div class="empty-state">هنوز کلمه‌ای ثبت نشده. اولین کلمه امروزت رو اضافه کن!</div>';
+    listEl.innerHTML = '<div class="empty-state">No words have been added yet. Add your first word today!</div>';
     return;
   }
 
@@ -254,7 +254,7 @@ function escapeHtml(str) {
 
 function exportToExcel() {
   if (words.length === 0) {
-    alert('هنوز کلمه‌ای برای خروجی گرفتن وجود نداره.');
+    alert('There are no words available to export yet.');
     return;
   }
 
@@ -263,7 +263,7 @@ function exportToExcel() {
     a.word.localeCompare(b.word, 'en', { sensitivity: 'base' })
   );
 
-  const headers = ['تاریخ', 'کلمه انگلیسی', 'معنی فارسی', 'جمله نمونه'];
+  const headers = ['Example Sentence' ,'Persian Meaning' ,'English Word' ,'Date'];
   const rows = sorted.map(w => [w.date, w.word, w.meaning, w.example || '']);
 
   const wsData = [headers, ...rows];
@@ -281,7 +281,7 @@ function exportToExcel() {
   const wb = XLSX.utils.book_new();
   wb.Workbook = { Views: [{ RTL: true }] };
 
-  XLSX.utils.book_append_sheet(wb, ws, 'لغات');
+  XLSX.utils.book_append_sheet(wb, ws, 'Vocabulary');
 
   const today = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(wb, `vocab-words-${today}.xlsx`, { bookType: 'xlsx', codepage: 65001 });

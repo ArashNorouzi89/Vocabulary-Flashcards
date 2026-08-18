@@ -107,7 +107,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>📘 دفترچه لغات روزانه</h1>
+  <h1>📘 Vocabulary Notebook</h1>
 
   <div class="stats" id="stats"></div>
 
@@ -203,13 +203,13 @@ function render() {
   const uniqueDays = new Set(words.map(w => w.date)).size;
 
   statsEl.innerHTML = `
-    <div class="stat-box"><div class="stat-num">${todayCount}</div><div class="stat-label">امروز</div></div>
-    <div class="stat-box"><div class="stat-num">${totalCount}</div><div class="stat-label">کل کلمات</div></div>
-    <div class="stat-box"><div class="stat-num">${uniqueDays}</div><div class="stat-label">روزهای فعال</div></div>
+    <div class="stat-box"><div class="stat-num">${todayCount}</div><div class="stat-label">Today</div></div>
+    <div class="stat-box"><div class="stat-num">${totalCount}</div><div class="stat-label">All Words</div></div>
+    <div class="stat-box"><div class="stat-num">${uniqueDays}</div><div class="stat-label">Active Days</div></div>
   `;
 
   if (words.length === 0) {
-    listEl.innerHTML = '<div class="empty-state">No words have been added yet. Add your first word today!</div>';
+    listEl.innerHTML = '<div class="empty-state">No words have been added yet.</div>';
     return;
   }
 
@@ -237,7 +237,7 @@ function render() {
             <div class="word-meaning">${escapeHtml(w.meaning)}</div>
             ${w.example ? `<div class="word-example">"${escapeHtml(w.example)}"</div>` : ''}
           </div>
-          <button class="del-btn" onclick="deleteWord('${w.id}')">حذف</button>
+          <button class="del-btn" onclick="deleteWord('${w.id}')">Delete</button>
         </div>
       `;
     });

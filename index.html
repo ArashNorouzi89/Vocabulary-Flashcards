@@ -266,9 +266,6 @@
   function render() {
     const listEl = document.getElementById('wordList');
     const statsEl = document.getElementById('stats');
-    const todayFormatted = new Date().toLocaleDateString('en-US');
-
-
 
     const today = todayKey();
     const todayCount = words.filter(w => w.date === today).length;
@@ -276,7 +273,7 @@
     const uniqueDays = new Set(words.map(w => w.date)).size;
 
     statsEl.innerHTML = `
-      <div class="stat-box"><div class="stat-label">${todayFormatted}</div></div>
+      <div class="stat-box"><div class="stat-num">${todayCount}</div><div class="stat-label">امروز</div></div>
       <div class="stat-box"><div class="stat-num">${totalCount}</div><div class="stat-label">کل کلمات</div></div>
       <div class="stat-box"><div class="stat-num">${uniqueDays}</div><div class="stat-label">روزهای فعال</div></div>
     `;
